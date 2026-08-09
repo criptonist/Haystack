@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>HAYSTACK — генератор Bitcoin-ключей</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,931 +12,734 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <style>
-
-:root{
-  --bg:#06090a;
-  --panel:#0d1210;
-  --panel-2:#0a0f0d;
-  --border:#1c2823;
-  --text:#d9f2df;
-  --dim:#6f8a76;
-  --dimmer:#3f5148;
-  --accent:#f7931a;
-  --accent-dim:#7a4c0f;
-  --ok:#4fd67a;
-  --danger:#ff5c5c;
-  --mono:'JetBrains Mono',ui-monospace,monospace;
-}
-
-*{
-  box-sizing:border-box;
-}
-
-html,
-body{
-  margin:0;
-  padding:0;
-}
-
-body{
-  background:
-    radial-gradient(
-      1200px 500px at 50% -10%,
-      rgba(247,147,26,.08),
-      transparent 60%
-    ),
-    var(--bg);
-
-  color:var(--text);
-
-  font-family:var(--mono);
-
-  -webkit-font-smoothing:antialiased;
-
-  min-height:100vh;
-
-  padding:48px 20px 80px;
-}
-
-.wrap{
-  max-width:860px;
-  margin:0 auto;
-}
-
-/* =========================================================
-   HERO
-   ========================================================= */
-
-.eyebrow{
-  display:flex;
-  align-items:center;
-  gap:10px;
-
-  color:var(--accent);
-
-  letter-spacing:.18em;
-  font-size:11px;
-  font-weight:700;
-
-  text-transform:uppercase;
-
-  margin-bottom:18px;
-}
-
-.eyebrow::before{
-  content:"";
-
-  width:8px;
-  height:8px;
-
-  background:var(--accent);
-
-  border-radius:1px;
-
-  box-shadow:0 0 10px var(--accent);
-
-  animation:blink 1.6s steps(2) infinite;
-}
-
-@keyframes blink{
-  50%{
-    opacity:.25;
+  :root{
+    --bg:#06090a;
+    --panel:#0d1210;
+    --panel-2:#0a0f0d;
+    --border:#1c2823;
+    --text:#d9f2df;
+    --dim:#6f8a76;
+    --dimmer:#3f5148;
+    --accent:#f7931a;
+    --accent-dim:#7a4c0f;
+    --ok:#4fd67a;
+    --danger:#ff5c5c;
+    --warning:#f5c542;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
   }
-}
 
-h1{
-  font-size:clamp(38px,7vw,64px);
-  line-height:.95;
+  *{
+    box-sizing:border-box;
+  }
 
-  margin:0 0 26px;
+  html,body{
+    margin:0;
+    padding:0;
+  }
 
-  font-weight:800;
-  letter-spacing:-.02em;
-}
+  body{
+    background:
+      radial-gradient(
+        1200px 500px at 50% -10%,
+        rgba(247,147,26,.08),
+        transparent 60%
+      ),
+      var(--bg);
 
-h1 span{
-  color:var(--accent);
-}
+    color:var(--text);
+    font-family:var(--mono);
+    -webkit-font-smoothing:antialiased;
 
-/* =========================================================
-   STATS
-   ========================================================= */
+    min-height:100vh;
+    padding:48px 20px 80px;
+  }
 
-.stats{
-  display:grid;
-  grid-template-columns:1fr 1fr;
+  .wrap{
+    max-width:860px;
+    margin:0 auto;
+  }
 
-  gap:12px;
+  /* ---------- hero ---------- */
 
-  margin-bottom:40px;
-}
+  .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:10px;
 
-.stat{
-  background:var(--panel);
+    color:var(--accent);
+    letter-spacing:.18em;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
 
-  border:1px solid var(--border);
+    margin-bottom:18px;
+  }
 
-  border-radius:10px;
+  .eyebrow::before{
+    content:"";
+    width:8px;
+    height:8px;
+    background:var(--accent);
+    border-radius:1px;
+    box-shadow:0 0 10px var(--accent);
+    animation:blink 1.6s steps(2) infinite;
+  }
 
-  padding:16px 18px;
-}
+  @keyframes blink{
+    50%{
+      opacity:.25;
+    }
+  }
 
-.stat .k{
-  font-size:20px;
-  font-weight:700;
-}
+  h1{
+    font-size:clamp(38px,7vw,64px);
+    line-height:.95;
+    margin:0 0 26px;
+    font-weight:800;
+    letter-spacing:-.02em;
+  }
 
-.stat .v{
-  font-size:11px;
-  color:var(--dim);
+  h1 span{
+    color:var(--accent);
+  }
 
-  margin-top:4px;
-
-  letter-spacing:.03em;
-}
-
-@media(max-width:520px){
+  /* ---------- stats ---------- */
 
   .stats{
-    grid-template-columns:1fr;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:40px;
   }
 
-}
-
-/* =========================================================
-   MAIN FORGE
-   ========================================================= */
-
-.forge{
-
-  /*
-   * Немного шире исходного блока.
-   * Это предотвращает визуальное слияние
-   * внутренних скруглённых полей с внешней границей.
-   */
-
-  width:calc(100% + 16px);
-  margin-left:-8px;
-
-  background:var(--panel);
-
-  border:1px solid var(--border);
-
-  border-radius:14px;
-
-  padding:26px;
-
-  margin-bottom:26px;
-}
-
-.forge-top{
-  margin-bottom:22px;
-}
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-
-button.gen{
-  appearance:none;
-
-  border:none;
-
-  cursor:pointer;
-
-  width:100%;
-
-  background:var(--accent);
-
-  color:#1a0f00;
-
-  font-family:var(--mono);
-
-  font-weight:800;
-
-  font-size:15px;
-
-  letter-spacing:.05em;
-
-  padding:16px 26px;
-
-  border-radius:9px;
-
-  box-shadow:
-    0 0 0 0 rgba(247,147,26,.5);
-
-  transition:
-    transform .12s ease,
-    box-shadow .25s ease,
-    background .2s ease;
-}
-
-button.gen:hover{
-  box-shadow:
-    0 0 28px 2px rgba(247,147,26,.45);
-
-  transform:translateY(-1px);
-}
-
-button.gen:active{
-  transform:
-    translateY(0)
-    scale(.98);
-}
-
-button.gen:disabled{
-  opacity:.5;
-  cursor:progress;
-}
-
-/* Кнопка проверки */
-
-button.check-key{
-  margin-top:4px;
-
-  background:transparent;
-
-  color:var(--accent);
-
-  border:1px solid var(--accent-dim);
-
-  box-shadow:none;
-}
-
-button.check-key:hover{
-  background:rgba(247,147,26,.06);
-
-  box-shadow:
-    0 0 18px rgba(247,147,26,.18);
-}
-
-/* =========================================================
-   FIELDS
-   ========================================================= */
-
-.field{
-  margin-bottom:14px;
-}
-
-.field:last-child{
-  margin-bottom:0;
-}
-
-.field label{
-  display:block;
-
-  font-size:10.5px;
-
-  letter-spacing:.12em;
-
-  color:var(--dimmer);
-
-  text-transform:uppercase;
-
-  margin-bottom:6px;
-
-  font-weight:700;
-}
-
-.field-row{
-
-  display:flex;
-
-  align-items:center;
-
-  gap:8px;
-
-  background:var(--panel-2);
-
-  border:1px solid var(--border);
-
-  border-radius:8px;
-
-  margin-left:-26px;
-  margin-right:-26px;
-
-  width:calc(100% + 52px);
-
-  padding:10px 14px;
-}
-
-.field-row .val{
-
-  flex:1;
-
-  font-size:12.5px;
-
-  word-break:break-all;
-
-  color:var(--text);
-
-  min-height:16px;
-}
-
-/* =========================================================
-   EDITABLE PRIVATE KEY
-   ========================================================= */
-
-.key-input{
-
-  display:block;
-
-  width:100%;
-
-  min-width:0;
-
-  border:0;
-
-  outline:0;
-
-  background:transparent;
-
-  color:var(--text);
-
-  font-family:var(--mono);
-
-  font-size:12.5px;
-
-  padding:0;
-
-  line-height:1.4;
-}
-
-.key-input::placeholder{
-  color:var(--dimmer);
-}
-
-.key-input:focus{
-  color:var(--accent);
-}
-
-/* =========================================================
-   COPY
-   ========================================================= */
-
-.copy{
-
-  appearance:none;
-
-  border:1px solid var(--border);
-
-  background:transparent;
-
-  color:var(--dim);
-
-  font-family:var(--mono);
-
-  font-size:10.5px;
-
-  letter-spacing:.06em;
-
-  padding:6px 9px;
-
-  border-radius:6px;
-
-  cursor:pointer;
-
-  white-space:nowrap;
-
-  flex-shrink:0;
-}
-
-.copy:hover{
-
-  color:var(--accent);
-
-  border-color:var(--accent-dim);
-}
-
-/* =========================================================
-   GRID
-   ========================================================= */
-
-.grid2{
-
-  display:grid;
-
-  grid-template-columns:1fr 1fr;
-
-  gap:12px;
-}
-
-@media(max-width:560px){
-
-  .grid2{
-    grid-template-columns:1fr;
+  .stat{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px 18px;
   }
 
-}
-
-.divider{
-
-  height:1px;
-
-  background:var(--border);
-
-  margin:20px 0;
-}
-
-/* =========================================================
-   BALANCE SUMMARY
-   ========================================================= */
-
-.balance-summary{
-
-  background:var(--panel-2);
-
-  border:1px solid var(--border);
-
-  border-radius:9px;
-
-  padding:14px 16px;
-
-  margin-bottom:16px;
-}
-
-.balance-total{
-
-  display:flex;
-
-  align-items:center;
-
-  gap:9px;
-
-  font-size:13px;
-
-  font-weight:700;
-
-  min-height:20px;
-}
-
-.balance-total.positive{
-  color:var(--ok);
-}
-
-.balance-total.empty{
-  color:var(--danger);
-}
-
-.balance-loading{
-  color:var(--dim);
-}
-
-.balance-details{
-  margin-top:10px;
-}
-
-.balance-row{
-
-  display:flex;
-
-  align-items:center;
-
-  gap:9px;
-
-  min-height:27px;
-
-  font-size:11px;
-}
-
-.balance-format{
-
-  flex:1;
-
-  color:var(--dim);
-
-  min-width:0;
-}
-
-.balance-value{
-
-  white-space:nowrap;
-
-  font-weight:700;
-}
-
-.balance-value.positive{
-  color:var(--ok);
-}
-
-.balance-value.error{
-  color:var(--danger);
-}
-
-.empty-value{
-  color:var(--danger);
-}
-
-.muted-row{
-  opacity:.9;
-}
-
-/* =========================================================
-   STATUS DOTS
-   ========================================================= */
-
-.status-dot{
-
-  width:7px;
-
-  height:7px;
-
-  min-width:7px;
-
-  border-radius:50%;
-
-  display:inline-block;
-}
-
-.status-dot.yellow{
-
-  background:#f7931a;
-
-  box-shadow:
-    0 0 7px rgba(247,147,26,.45);
-}
-
-.status-dot.red{
-
-  background:#ff5c5c;
-
-  box-shadow:
-    0 0 7px rgba(255,92,92,.35);
-}
-
-/* =========================================================
-   ADDRESS BLOCKS
-   ========================================================= */
-
-.addr-block{
-
-  background:var(--panel-2);
-
-  border:1px solid var(--border);
-
-  border-radius:8px;
-
-  margin-left:-26px;
-  margin-right:-26px;
-
-  width:calc(100% + 52px);
-
-  padding:10px 14px;
-
-  margin-bottom:10px;
-}
-
-.addr-block:last-child{
-  margin-bottom:0;
-}
-
-.addr-line{
-
-  /*
-   * Теперь длинные bc1-адреса
-   * переносятся внутри блока.
-   */
-
-  font-size:12.5px;
-
-  color:var(--text);
-
-  white-space:normal;
-
-  overflow-wrap:anywhere;
-
-  word-break:break-all;
-
-  overflow-x:visible;
-
-  line-height:1.55;
-
-  padding-bottom:8px;
-
-  margin-bottom:8px;
-
-  border-bottom:1px solid var(--border);
-}
-
-.addr-line.placeholder{
-  color:var(--dimmer);
-}
-
-.addr-meta{
-
-  display:flex;
-
-  align-items:center;
-
-  justify-content:space-between;
-
-  gap:10px;
-}
-
-.addr-tag{
-
-  font-size:10px;
-
-  font-weight:800;
-
-  letter-spacing:.05em;
-
-  color:var(--accent);
-
-  background:rgba(247,147,26,.08);
-
-  border:1px solid var(--accent-dim);
-
-  border-radius:5px;
-
-  padding:3px 6px;
-
-  flex-shrink:0;
-
-  white-space:nowrap;
-}
-
-/*
- * Старые баланс-бейджи возле адресов
- * больше не используются, но класс оставлен
- * для совместимости.
- */
-
-.badge{
-
-  font-size:10px;
-
-  font-weight:700;
-
-  letter-spacing:.04em;
-
-  padding:3px 8px;
-
-  border-radius:20px;
-
-  flex-shrink:0;
-
-  white-space:nowrap;
-
-  border:1px solid transparent;
-}
-
-.badge.checking{
-  color:var(--dim);
-  border-color:var(--border);
-}
-
-.badge.empty{
-  color:var(--ok);
-
-  border-color:
-    rgba(79,214,122,.3);
-
-  background:
-    rgba(79,214,122,.06);
-}
-
-.badge.funded{
-
-  color:var(--danger);
-
-  border-color:
-    rgba(255,92,92,.4);
-
-  background:
-    rgba(255,92,92,.08);
-
-  animation:pulse 1s infinite;
-}
-
-.badge.na{
-
-  color:var(--dimmer);
-
-  border-color:var(--border);
-}
-
-@keyframes pulse{
-
-  50%{
-    opacity:.4;
+  .stat .k{
+    font-size:20px;
+    font-weight:700;
+    color:var(--text);
   }
 
-}
-
-/* =========================================================
-   NOTE
-   ========================================================= */
-
-.note{
-
-  font-size:11.5px;
-
-  color:var(--dimmer);
-
-  margin-top:16px;
-
-  line-height:1.6;
-}
-
-.note.error{
-  color:var(--danger);
-}
-
-.note.warning{
-  color:var(--accent);
-}
-
-/* =========================================================
-   LOG
-   ========================================================= */
-
-.log-head{
-
-  display:flex;
-
-  align-items:center;
-
-  justify-content:space-between;
-
-  margin:36px 0 12px;
-}
-
-.log-title{
-
-  font-size:12px;
-
-  letter-spacing:.14em;
-
-  color:var(--dim);
-
-  text-transform:uppercase;
-
-  font-weight:700;
-}
-
-.log-count{
-
-  font-size:11px;
-
-  color:var(--dimmer);
-}
-
-.log-empty{
-
-  border:1px dashed var(--border);
-
-  border-radius:10px;
-
-  padding:26px;
-
-  text-align:center;
-
-  color:var(--dimmer);
-
-  font-size:12.5px;
-}
-
-.log-item{
-
-  border:1px solid var(--border);
-
-  background:var(--panel);
-
-  border-radius:10px;
-
-  padding:12px 14px;
-
-  margin-bottom:8px;
-
-  font-size:12px;
-}
-
-.log-item .row1{
-
-  display:flex;
-
-  justify-content:space-between;
-
-  gap:10px;
-
-  color:var(--dimmer);
-
-  margin-bottom:8px;
-}
-
-.log-item .row1 .idx{
-
-  color:var(--accent);
-
-  font-weight:700;
-}
-
-.log-item .priv{
-
-  color:var(--text);
-
-  word-break:break-all;
-
-  margin-bottom:10px;
-
-  opacity:.85;
-}
-
-.log-item .total{
-
-  display:flex;
-
-  align-items:center;
-
-  justify-content:space-between;
-
-  gap:10px;
-}
-
-.log-item .total .t{
-
-  color:var(--dim);
-
-  font-size:10.5px;
-
-  letter-spacing:.04em;
-
-  text-transform:uppercase;
-}
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-footer{
-
-  margin-top:50px;
-
-  color:var(--dimmer);
-
-  font-size:11px;
-
-  line-height:1.7;
-
-  border-top:1px solid var(--border);
-
-  padding-top:20px;
-}
-
-footer a{
-  color:var(--dim);
-}
-
-.scramble{
-  color:var(--dimmer)!important;
-}
-
-/* =========================================================
-   MOBILE
-   ========================================================= */
-
-@media(max-width:560px){
+  .stat .v{
+    font-size:11px;
+    color:var(--dim);
+    margin-top:4px;
+    letter-spacing:.03em;
+  }
+
+  @media(max-width:520px){
+    .stats{
+      grid-template-columns:1fr;
+    }
+  }
+
+  /* ---------- forge ---------- */
 
   .forge{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
 
+    /* расширено относительно исходника */
+    padding:26px 34px;
+
+    margin-bottom:26px;
+  }
+
+  .forge-top{
+    margin-bottom:22px;
+  }
+
+  /* ---------- balance panel ---------- */
+
+  .balance-panel{
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:9px;
+
+    /*
+      Фиксированная минимальная высота.
+      Благодаря этому при проверке содержимое не вызывает
+      скачков всей формы.
+    */
+    min-height:104px;
+
+    padding:13px 14px;
+    margin-bottom:16px;
+  }
+
+  .balance-title{
+    font-size:10px;
+    letter-spacing:.12em;
+    color:var(--dimmer);
+    text-transform:uppercase;
+    margin-bottom:10px;
+
+    font-weight:400;
+  }
+
+  .balance-status{
+    min-height:24px;
+    font-size:12px;
+    line-height:1.6;
+    font-weight:400;
+  }
+
+  .balance-status.muted{
+    color:var(--dimmer);
+  }
+
+  .balance-status.checking{
+    color:var(--dim);
+    font-weight:400;
+  }
+
+  .balance-total{
+    color:var(--text);
+    font-size:13px;
+    font-weight:400;
+  }
+
+  .balance-total.empty{
+    color:var(--danger);
+    font-weight:400;
+  }
+
+  .balance-total.has-balance{
+    color:var(--ok);
+    font-weight:400;
+  }
+
+  .balance-wallets{
+    margin-top:8px;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+
+  .balance-wallet{
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    min-width:0;
+
+    font-size:11px;
+    line-height:1.5;
+    font-weight:400;
+  }
+
+  .balance-wallet .format{
+    color:var(--dim);
+    flex-shrink:0;
+  }
+
+  .balance-wallet .amount{
+    color:var(--ok);
+    flex-shrink:0;
+  }
+
+  .balance-wallet .address-short{
+    color:var(--dimmer);
+
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .history-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    flex:0 0 7px;
+  }
+
+  .history-dot.previous{
+    background:var(--warning);
+    box-shadow:0 0 7px rgba(245,197,66,.35);
+  }
+
+  .history-dot.never{
+    background:var(--danger);
+    box-shadow:0 0 7px rgba(255,92,92,.25);
+  }
+
+  /* ---------- buttons ---------- */
+
+  button.gen{
+    appearance:none;
+    border:none;
+    cursor:pointer;
     width:100%;
 
-    margin-left:0;
+    background:var(--accent);
+    color:#1a0f00;
+
+    font-family:var(--mono);
+    font-weight:800;
+    font-size:15px;
+    letter-spacing:.05em;
+
+    padding:16px 26px;
+    border-radius:9px;
+
+    box-shadow:0 0 0 0 rgba(247,147,26,.5);
+
+    transition:
+      transform .12s ease,
+      box-shadow .25s ease,
+      background .2s ease;
   }
 
-  .balance-row{
-
-    align-items:flex-start;
+  button.gen:hover{
+    box-shadow:0 0 28px 2px rgba(247,147,26,.45);
+    transform:translateY(-1px);
   }
 
-  .balance-value{
-
-    text-align:right;
+  button.gen:active{
+    transform:translateY(0) scale(.98);
   }
 
-  .field-row,
+  button.gen:disabled{
+    opacity:.5;
+    cursor:progress;
+  }
+
+  /* ---------- input ---------- */
+
+  .key-input-wrap{
+    display:flex;
+    gap:8px;
+    align-items:stretch;
+  }
+
+  .key-input{
+    width:100%;
+    min-width:0;
+
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:12.5px;
+
+    padding:11px 12px;
+    outline:none;
+
+    transition:
+      border-color .15s ease,
+      box-shadow .15s ease;
+  }
+
+  .key-input:focus{
+    border-color:var(--accent-dim);
+    box-shadow:0 0 0 2px rgba(247,147,26,.06);
+  }
+
+  .key-input::placeholder{
+    color:var(--dimmer);
+  }
+
+  .check-btn{
+    appearance:none;
+    border:1px solid var(--accent-dim);
+    background:rgba(247,147,26,.08);
+    color:var(--accent);
+
+    font-family:var(--mono);
+    font-size:11px;
+    font-weight:600;
+
+    padding:0 15px;
+    border-radius:8px;
+
+    cursor:pointer;
+    white-space:nowrap;
+
+    transition:
+      background .15s ease,
+      border-color .15s ease;
+  }
+
+  .check-btn:hover{
+    background:rgba(247,147,26,.14);
+    border-color:var(--accent);
+  }
+
+  .check-btn:disabled{
+    opacity:.5;
+    cursor:progress;
+  }
+
+  .input-hint{
+    margin-top:6px;
+    font-size:10px;
+    color:var(--dimmer);
+    line-height:1.5;
+    font-weight:400;
+  }
+
+  .input-error{
+    color:var(--danger);
+  }
+
+  /* ---------- fields ---------- */
+
+  .field{
+    margin-bottom:14px;
+  }
+
+  .field:last-child{
+    margin-bottom:0;
+  }
+
+  .field label{
+    display:block;
+    font-size:10.5px;
+    letter-spacing:.12em;
+    color:var(--dimmer);
+    text-transform:uppercase;
+    margin-bottom:6px;
+    font-weight:700;
+  }
+
+  .field-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+
+    /*
+      Было -26/+52.
+      Теперь внутренние поля остаются внутри основного блока
+      с увеличенным padding.
+    */
+    padding:10px 14px;
+  }
+
+  .field-row .val{
+    flex:1;
+    min-width:0;
+
+    font-size:12.5px;
+    word-break:break-all;
+    color:var(--text);
+    min-height:16px;
+  }
+
+  .field-row .val.placeholder{
+    color:var(--dimmer);
+  }
+
+  .copy{
+    appearance:none;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--dim);
+
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.06em;
+
+    padding:6px 9px;
+    border-radius:6px;
+
+    cursor:pointer;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+
+  .copy:hover{
+    color:var(--accent);
+    border-color:var(--accent-dim);
+  }
+
+  .grid2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+
+  @media(max-width:560px){
+    .grid2{
+      grid-template-columns:1fr;
+    }
+  }
+
+  .divider{
+    height:1px;
+    background:var(--border);
+    margin:20px 0;
+  }
+
+  /* ---------- addresses ---------- */
+
   .addr-block{
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:8px;
 
-    margin-left:-18px;
-
-    margin-right:-18px;
-
-    width:calc(100% + 36px);
+    padding:10px 14px;
+    margin-bottom:10px;
   }
 
-}
+  .addr-block:last-child{
+    margin-bottom:0;
+  }
 
+  .addr-line{
+    font-size:12.5px;
+    color:var(--text);
+
+    /*
+      bc1 адрес не переносится.
+      При нехватке места появляется горизонтальная прокрутка.
+    */
+    white-space:nowrap;
+    overflow-x:auto;
+    overflow-y:hidden;
+
+    padding-bottom:8px;
+    margin-bottom:8px;
+
+    border-bottom:1px solid var(--border);
+
+    scrollbar-width:none;
+
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .addr-line::-webkit-scrollbar{
+    display:none;
+  }
+
+  .addr-line.placeholder{
+    color:var(--dimmer);
+  }
+
+  .addr-meta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+
+  .addr-tag{
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.05em;
+
+    color:var(--accent);
+
+    background:rgba(247,147,26,.08);
+    border:1px solid var(--accent-dim);
+
+    border-radius:5px;
+    padding:3px 6px;
+
+    flex-shrink:0;
+    white-space:nowrap;
+  }
+
+  /*
+    Бейджи под адресами больше не используются.
+    Оставлено только для совместимости с JS.
+  */
+  .badge{
+    font-size:10px;
+    font-weight:400;
+    letter-spacing:.04em;
+    padding:3px 8px;
+    border-radius:20px;
+    flex-shrink:0;
+    white-space:nowrap;
+    border:1px solid transparent;
+  }
+
+  .badge.checking{
+    color:var(--dim);
+    border-color:var(--border);
+    font-weight:400;
+  }
+
+  .badge.empty{
+    color:var(--ok);
+    border-color:rgba(79,214,122,.3);
+    background:rgba(79,214,122,.06);
+    font-weight:400;
+  }
+
+  .badge.funded{
+    color:var(--danger);
+    border-color:rgba(255,92,92,.4);
+    background:rgba(255,92,92,.08);
+    animation:pulse 1s infinite;
+    font-weight:400;
+  }
+
+  .badge.na{
+    color:var(--dimmer);
+    border-color:var(--border);
+    font-weight:400;
+  }
+
+  @keyframes pulse{
+    50%{
+      opacity:.4;
+    }
+  }
+
+  .note{
+    font-size:11.5px;
+    color:var(--dimmer);
+    margin-top:16px;
+    line-height:1.6;
+    font-weight:400;
+  }
+
+  /* ---------- log ---------- */
+
+  .log-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:36px 0 12px;
+  }
+
+  .log-title{
+    font-size:12px;
+    letter-spacing:.14em;
+    color:var(--dim);
+    text-transform:uppercase;
+    font-weight:700;
+  }
+
+  .log-count{
+    font-size:11px;
+    color:var(--dimmer);
+    font-weight:400;
+  }
+
+  .log-empty{
+    border:1px dashed var(--border);
+    border-radius:10px;
+    padding:26px;
+    text-align:center;
+
+    color:var(--dimmer);
+    font-size:12.5px;
+    font-weight:400;
+  }
+
+  .log-item{
+    border:1px solid var(--border);
+    background:var(--panel);
+    border-radius:10px;
+
+    padding:12px 14px;
+    margin-bottom:8px;
+
+    font-size:12px;
+  }
+
+  .log-item .row1{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+
+    color:var(--dimmer);
+    margin-bottom:8px;
+    font-weight:400;
+  }
+
+  .log-item .row1 .idx{
+    color:var(--accent);
+    font-weight:700;
+  }
+
+  .log-item .priv{
+    color:var(--text);
+    word-break:break-all;
+    margin-bottom:10px;
+    opacity:.85;
+    font-weight:400;
+  }
+
+  .log-item .total{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+
+  .log-item .total .t{
+    color:var(--dim);
+    font-size:10.5px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    font-weight:400;
+  }
+
+  footer{
+    margin-top:50px;
+    color:var(--dimmer);
+    font-size:11px;
+    line-height:1.7;
+
+    border-top:1px solid var(--border);
+    padding-top:20px;
+
+    font-weight:400;
+  }
+
+  footer a{
+    color:var(--dim);
+  }
+
+  .scramble{
+    color:var(--dimmer)!important;
+  }
+
+  @media(max-width:560px){
+
+    body{
+      padding-left:12px;
+      padding-right:12px;
+    }
+
+    .forge{
+      padding:22px 24px;
+    }
+
+    .key-input-wrap{
+      flex-direction:column;
+    }
+
+    .check-btn{
+      min-height:42px;
+    }
+
+    .balance-panel{
+      min-height:120px;
+    }
+  }
 </style>
 </head>
 
 <body>
 
 <div class="wrap">
-
-  <!-- =====================================================
-       HERO
-       ===================================================== -->
 
   <div class="eyebrow">
     Bitcoin. Lucky chance
@@ -948,92 +750,117 @@ footer a{
     <span>ИГОЛКУ</span> В СТОГЕ
   </h1>
 
-  <!-- =====================================================
-       STATS
-       ===================================================== -->
-
   <div class="stats">
 
     <div class="stat">
-
-      <div class="k">
-        2²⁵⁶ ≈ 1.16 × 10⁷⁷
-      </div>
-
-      <div class="v">
-        возможных приватных ключей
-      </div>
-
+      <div class="k">2²⁵⁶ ≈ 1.16 × 10⁷⁷</div>
+      <div class="v">возможных приватных ключей</div>
     </div>
 
     <div class="stat">
-
-      <div class="k">
-        ~10⁸⁰
-      </div>
-
+      <div class="k">~10⁸⁰</div>
       <div class="v">
         атомов в наблюдаемой вселенной — того же порядка
       </div>
-
     </div>
 
   </div>
 
-  <!-- =====================================================
-       FORGE
-       ===================================================== -->
 
   <div class="forge">
 
-    <!-- ===================================================
-         BALANCE SUMMARY
-         =================================================== -->
+    <!-- =========================
+         PRIVATE KEY INPUT
+    ========================== -->
 
-    <div
-      class="balance-summary"
-      id="balanceSummary"
-    >
+    <div class="field">
 
-      <div
-        class="balance-total empty"
-        id="balanceTotal"
-      >
+      <label>
+        Приватный ключ (HEX)
+      </label>
 
-        <span class="status-dot red"></span>
+      <div class="key-input-wrap">
 
-        <span>
-          Баланс не проверен
-        </span>
+        <input
+          id="privateKeyInput"
+          class="key-input"
+          type="text"
+          inputmode="text"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          maxlength="64"
+          placeholder="Введите HEX от 1 до 64 символов"
+        >
+
+        <button
+          class="check-btn"
+          id="checkBtn"
+          type="button"
+        >
+          Проверить ключ
+        </button>
 
       </div>
 
       <div
-        class="balance-details"
-        id="balanceDetails"
+        class="input-hint"
+        id="inputHint"
+      >
+        Можно вводить любое HEX-число от 1 до 64 символов.
+        Например: 1, 01, deadbeef.
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         BALANCE
+    ========================== -->
+
+    <div
+      class="balance-panel"
+      id="balancePanel"
+    >
+
+      <div class="balance-title">
+        Баланс
+      </div>
+
+      <div
+        class="balance-status muted"
+        id="balanceStatus"
+      >
+        Баланс не проверен
+      </div>
+
+      <div
+        class="balance-wallets"
+        id="balanceWallets"
       ></div>
 
     </div>
 
-    <!-- ===================================================
+
+    <!-- =========================
          GENERATE
-         =================================================== -->
+    ========================== -->
 
     <div class="forge-top">
 
       <button
         class="gen"
         id="genBtn"
-        type="button"
       >
         ⚡ Сгенерировать ключ
       </button>
 
     </div>
 
-    <!-- ===================================================
-         PRIVATE KEY
-         =================================================== -->
+
+    <!-- =========================
+         PRIVATE KEY OUTPUT
+    ========================== -->
 
     <div class="field">
 
@@ -1043,22 +870,16 @@ footer a{
 
       <div class="field-row">
 
-        <input
-          class="val key-input"
+        <div
+          class="val placeholder"
           id="privHex"
-          type="text"
-          inputmode="text"
-          autocomplete="off"
-          autocapitalize="off"
-          spellcheck="false"
-          maxlength="64"
-          placeholder="Введите 64 HEX-символа"
         >
+          — нажмите «Сгенерировать» или введите ключ выше
+        </div>
 
         <button
           class="copy"
           data-copy="privHex"
-          type="button"
         >
           copy
         </button>
@@ -1067,25 +888,10 @@ footer a{
 
     </div>
 
-    <!-- ===================================================
-         CHECK KEY
-         =================================================== -->
 
-    <div class="field">
-
-      <button
-        class="gen check-key"
-        id="checkBtn"
-        type="button"
-      >
-        Проверить ключ
-      </button>
-
-    </div>
-
-    <!-- ===================================================
+    <!-- =========================
          WIF COMPRESSED
-         =================================================== -->
+    ========================== -->
 
     <div class="field">
 
@@ -1105,7 +911,6 @@ footer a{
         <button
           class="copy"
           data-copy="wifC"
-          type="button"
         >
           copy
         </button>
@@ -1114,9 +919,10 @@ footer a{
 
     </div>
 
-    <!-- ===================================================
+
+    <!-- =========================
          WIF UNCOMPRESSED
-         =================================================== -->
+    ========================== -->
 
     <div class="field">
 
@@ -1136,7 +942,6 @@ footer a{
         <button
           class="copy"
           data-copy="wifU"
-          type="button"
         >
           copy
         </button>
@@ -1145,21 +950,18 @@ footer a{
 
     </div>
 
+
     <div class="divider"></div>
 
-    <!-- ===================================================
+
+    <!-- =========================
          ADDRESSES
-         =================================================== -->
+    ========================== -->
 
     <div class="field">
-
-      <label>
-        Адреса
-      </label>
-
+      <label>Адреса</label>
     </div>
 
-    <!-- P2PKH COMPRESSED -->
 
     <div class="addr-block">
 
@@ -1180,7 +982,6 @@ footer a{
 
     </div>
 
-    <!-- P2PKH UNCOMPRESSED -->
 
     <div class="addr-block">
 
@@ -1201,7 +1002,6 @@ footer a{
 
     </div>
 
-    <!-- P2SH -->
 
     <div class="addr-block">
 
@@ -1222,7 +1022,6 @@ footer a{
 
     </div>
 
-    <!-- BECH32 -->
 
     <div class="addr-block">
 
@@ -1243,25 +1042,23 @@ footer a{
 
     </div>
 
-    <!-- ===================================================
-         STATUS
-         =================================================== -->
 
     <p
       class="note"
       id="statusNote"
     >
       Проверка баланса выполняется через публичный API
-      blockstream.info. Приватный ключ обрабатывается
-      локально в браузере; для проверки в сеть передаются
-      только производные публичные адреса.
+      blockstream.info. Если API недоступен, будет показано
+      «н/д». Для проверки используется только введённый или
+      сгенерированный ключ.
     </p>
 
   </div>
 
-  <!-- =====================================================
+
+  <!-- =========================
        LOG
-       ===================================================== -->
+  ========================== -->
 
   <div class="log-head">
 
@@ -1278,6 +1075,7 @@ footer a{
 
   </div>
 
+
   <div id="log">
 
     <div class="log-empty">
@@ -1286,48 +1084,41 @@ footer a{
 
   </div>
 
-  <!-- =====================================================
-       FOOTER
-       ===================================================== -->
 
   <footer>
 
-    Каждый клик генерирует случайный приватный ключ
-    secp256k1 в браузере и выводит связанные адреса:
-    P2PKH сжатый, P2PKH несжатый,
-    P2SH-P2WPKH и Bech32.
+    Каждый клик генерирует случайный приватный ключ secp256k1
+    в браузере и выводит связанные адреса:
 
-    <br><br>
+    P2PKH сжатый,
+    P2PKH несжатый,
+    P2SH-P2WPKH
+    и Bech32.
 
-    Можно также вручную ввести собственный приватный
-    ключ в HEX и нажать «Проверить ключ».
-
-    <br><br>
-
-    Проверка состояния адресов выполняется через
-    публичный API Blockstream. Жёлтая точка означает,
-    что у адреса есть история транзакций.
-    Красная точка означает, что транзакций не обнаружено.
+    Для ручной проверки можно ввести любое HEX-число длиной
+    от 1 до 64 символов. Перед вычислением оно дополняется
+    нулями слева до 32 байт.
 
   </footer>
 
 </div>
 
-<script>
 
+<script>
 (function(){
 
-  /* =======================================================
-     SECP256K1
-     ======================================================= */
+  'use strict';
 
-  const ec =
-    new elliptic.ec('secp256k1');
 
-  const CURVE_N =
-    BigInt(
-      '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141'
-    );
+  /* =========================================================
+     BITCOIN / SECP256K1
+  ========================================================== */
+
+  const ec = new elliptic.ec('secp256k1');
+
+  const CURVE_N = BigInt(
+    '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141'
+  );
 
   const B58ALPHABET =
     '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
@@ -1336,78 +1127,65 @@ footer a{
     'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
 
 
-  /* =======================================================
+  /* =========================================================
      BYTE HELPERS
-     ======================================================= */
+  ========================================================== */
 
   function bytesToHex(bytes){
 
     return Array
       .from(bytes)
-      .map(
-        b =>
-          b.toString(16)
-           .padStart(2,'0')
-      )
+      .map(b => b.toString(16).padStart(2,'0'))
       .join('');
+
   }
 
 
   function hexToBytes(hex){
 
-    const out =
-      new Uint8Array(
-        hex.length / 2
+    const out = new Uint8Array(hex.length / 2);
+
+    for(let i = 0; i < out.length; i++){
+
+      out[i] = parseInt(
+        hex.substr(i * 2, 2),
+        16
       );
 
-    for(
-      let i = 0;
-      i < out.length;
-      i++
-    ){
-
-      out[i] =
-        parseInt(
-          hex.substr(i * 2,2),
-          16
-        );
     }
 
     return out;
+
   }
 
 
   function concatBytes(...arrs){
 
-    const len =
-      arrs.reduce(
-        (s,a) =>
-          s + a.length,
-        0
-      );
+    const len = arrs.reduce(
+      (s,a) => s + a.length,
+      0
+    );
 
-    const out =
-      new Uint8Array(len);
+    const out = new Uint8Array(len);
 
     let offset = 0;
 
     for(const a of arrs){
 
-      out.set(
-        a,
-        offset
-      );
+      out.set(a, offset);
 
       offset += a.length;
+
     }
 
     return out;
+
   }
 
 
-  /* =======================================================
+  /* =========================================================
      HASHING
-     ======================================================= */
+  ========================================================== */
 
   function sha256(bytes){
 
@@ -1420,10 +1198,9 @@ footer a{
       CryptoJS.SHA256(wa);
 
     return hexToBytes(
-      h.toString(
-        CryptoJS.enc.Hex
-      )
+      h.toString(CryptoJS.enc.Hex)
     );
+
   }
 
 
@@ -1438,10 +1215,9 @@ footer a{
       CryptoJS.RIPEMD160(wa);
 
     return hexToBytes(
-      h.toString(
-        CryptoJS.enc.Hex
-      )
+      h.toString(CryptoJS.enc.Hex)
     );
+
   }
 
 
@@ -1450,22 +1226,20 @@ footer a{
     return ripemd160(
       sha256(bytes)
     );
+
   }
 
 
-  /* =======================================================
-     BASE58
-     ======================================================= */
+  /* =========================================================
+     BASE58 CHECK
+  ========================================================== */
 
   function base58encode(bytes){
 
     let intVal =
       BigInt(
         '0x' +
-        (
-          bytesToHex(bytes) ||
-          '00'
-        )
+        (bytesToHex(bytes) || '00')
       );
 
     let result = '';
@@ -1476,29 +1250,30 @@ footer a{
         intVal % 58n;
 
       result =
-        B58ALPHABET[
-          Number(rem)
-        ] +
+        B58ALPHABET[Number(rem)] +
         result;
 
       intVal =
         intVal / 58n;
+
     }
 
     for(const b of bytes){
 
       if(b === 0){
 
-        result =
-          '1' + result;
+        result = '1' + result;
 
       }else{
 
         break;
+
       }
+
     }
 
     return result || '1';
+
   }
 
 
@@ -1515,12 +1290,13 @@ footer a{
         checksum
       )
     );
+
   }
 
 
-  /* =======================================================
+  /* =========================================================
      BECH32
-     ======================================================= */
+  ========================================================== */
 
   function bech32Polymod(values){
 
@@ -1536,31 +1312,26 @@ footer a{
 
     for(const v of values){
 
-      const top =
-        chk >> 25;
+      const top = chk >> 25;
 
       chk =
-        (
-          (chk & 0x1ffffff) << 5
-        ) ^ v;
+        ((chk & 0x1ffffff) << 5) ^
+        v;
 
-      for(
-        let i = 0;
-        i < 5;
-        i++
-      ){
+      for(let i = 0; i < 5; i++){
 
-        if(
-          (top >> i) & 1
-        ){
+        if((top >> i) & 1){
 
-          chk ^=
-            GEN[i];
+          chk ^= GEN[i];
+
         }
+
       }
+
     }
 
     return chk;
+
   }
 
 
@@ -1568,73 +1339,55 @@ footer a{
 
     const ret = [];
 
-    for(
-      let i = 0;
-      i < hrp.length;
-      i++
-    ){
+    for(let i = 0; i < hrp.length; i++){
 
       ret.push(
         hrp.charCodeAt(i) >> 5
       );
+
     }
 
     ret.push(0);
 
-    for(
-      let i = 0;
-      i < hrp.length;
-      i++
-    ){
+    for(let i = 0; i < hrp.length; i++){
 
       ret.push(
         hrp.charCodeAt(i) & 31
       );
+
     }
 
     return ret;
+
   }
 
 
-  function bech32CreateChecksum(
-    hrp,
-    data
-  ){
+  function bech32CreateChecksum(hrp,data){
 
     const values =
       bech32HrpExpand(hrp)
         .concat(data)
-        .concat([
-          0,0,0,0,0,0
-        ]);
+        .concat([0,0,0,0,0,0]);
 
     const mod =
       bech32Polymod(values) ^ 1;
 
     const ret = [];
 
-    for(
-      let p = 0;
-      p < 6;
-      p++
-    ){
+    for(let p = 0; p < 6; p++){
 
       ret.push(
-        (
-          mod >>
-          (5 * (5 - p))
-        ) & 31
+        (mod >> (5 * (5 - p))) & 31
       );
+
     }
 
     return ret;
+
   }
 
 
-  function bech32Encode(
-    hrp,
-    data
-  ){
+  function bech32Encode(hrp,data){
 
     const combined =
       data.concat(
@@ -1647,15 +1400,15 @@ footer a{
     let ret =
       hrp + '1';
 
-    for(
-      const d of combined
-    ){
+    for(const d of combined){
 
       ret +=
         BECH32_CHARSET.charAt(d);
+
     }
 
     return ret;
+
   }
 
 
@@ -1674,9 +1427,7 @@ footer a{
     const maxv =
       (1 << toBits) - 1;
 
-    for(
-      const value of data
-    ){
+    for(const value of data){
 
       acc =
         (acc << fromBits) |
@@ -1684,9 +1435,7 @@ footer a{
 
       bits += fromBits;
 
-      while(
-        bits >= toBits
-      ){
+      while(bits >= toBits){
 
         bits -= toBits;
 
@@ -1694,24 +1443,22 @@ footer a{
           (acc >> bits) &
           maxv
         );
+
       }
+
     }
 
-    if(
-      pad &&
-      bits > 0
-    ){
+    if(pad && bits > 0){
 
       ret.push(
-        (
-          acc <<
-          (toBits - bits)
-        ) &
+        (acc << (toBits - bits)) &
         maxv
       );
+
     }
 
     return ret;
+
   }
 
 
@@ -1721,27 +1468,27 @@ footer a{
     programBytes
   ){
 
-    const data = [
-      version
-    ].concat(
-      convertBits(
-        Array.from(programBytes),
-        8,
-        5,
-        true
-      )
-    );
+    const data =
+      [version].concat(
+        convertBits(
+          Array.from(programBytes),
+          8,
+          5,
+          true
+        )
+      );
 
     return bech32Encode(
       hrp,
       data
     );
+
   }
 
 
-  /* =======================================================
-     PRIVATE KEY GENERATION
-     ======================================================= */
+  /* =========================================================
+     PRIVATE KEY
+  ========================================================== */
 
   function randomPrivateKey(){
 
@@ -1753,9 +1500,7 @@ footer a{
       bytes =
         new Uint8Array(32);
 
-      crypto.getRandomValues(
-        bytes
-      );
+      crypto.getRandomValues(bytes);
 
       val =
         BigInt(
@@ -1769,57 +1514,100 @@ footer a{
     );
 
     return bytes;
+
   }
 
 
-  /* =======================================================
-     PRIVATE KEY VALIDATION
-     ======================================================= */
+  /*
+    Главное изменение:
 
-  function validatePrivateKeyHex(
-    value
-  ){
+    Пользователь может ввести:
 
-    const clean =
-      value
+      1
+      01
+      abc
+      deadbeef
+      ...
+      до 64 HEX-символов.
+
+    Например:
+
+      1
+
+    превращается в:
+
+      0000000000000000000000000000000000000000000000000000000000000001
+
+    Только для вычисления ключа.
+  */
+
+  function normalizePrivateKey(input){
+
+    let hex =
+      String(input || '')
         .trim()
-        .replace(
-          /^0x/i,
-          ''
-        )
-        .toLowerCase();
+        .replace(/^0x/i,'');
 
-    if(
-      !/^[0-9a-f]{64}$/.test(clean)
-    ){
+    if(hex.length === 0){
 
       throw new Error(
-        'Приватный ключ должен содержать ровно 64 HEX-символа.'
+        'Введите HEX-ключ'
       );
+
     }
 
-    const valueBigInt =
-      BigInt(
-        '0x' + clean
-      );
-
-    if(
-      valueBigInt === 0n ||
-      valueBigInt >= CURVE_N
-    ){
+    if(hex.length > 64){
 
       throw new Error(
-        'Приватный ключ находится вне допустимого диапазона secp256k1.'
+        'HEX-ключ не может быть длиннее 64 символов'
       );
+
     }
 
-    return hexToBytes(clean);
+    if(!/^[0-9a-fA-F]+$/.test(hex)){
+
+      throw new Error(
+        'Разрешены только HEX-символы 0-9 и A-F'
+      );
+
+    }
+
+    /*
+      Нормализация до 32 байт.
+    */
+
+    hex =
+      hex
+        .toLowerCase()
+        .padStart(64,'0');
+
+    const value =
+      BigInt('0x' + hex);
+
+    if(value === 0n){
+
+      throw new Error(
+        'Приватный ключ не может быть равен нулю'
+      );
+
+    }
+
+    if(value >= CURVE_N){
+
+      throw new Error(
+        'Приватный ключ должен быть меньше порядка secp256k1'
+      );
+
+    }
+
+    return hexToBytes(hex);
+
   }
 
 
-  /* =======================================================
-     DERIVE WIF + ADDRESSES
-     ======================================================= */
+  /* =========================================================
+     DERIVE ADDRESSES
+  ========================================================== */
 
   function deriveAll(privBytes){
 
@@ -1832,20 +1620,14 @@ footer a{
       new Uint8Array(
         keyPair
           .getPublic()
-          .encode(
-            'array',
-            true
-          )
+          .encode('array',true)
       );
 
     const pubU =
       new Uint8Array(
         keyPair
           .getPublic()
-          .encode(
-            'array',
-            false
-          )
+          .encode('array',false)
       );
 
 
@@ -1898,10 +1680,7 @@ footer a{
 
     const redeem =
       concatBytes(
-        new Uint8Array([
-          0x00,
-          0x14
-        ]),
+        new Uint8Array([0x00,0x14]),
         hash160(pubC)
       );
 
@@ -1914,7 +1693,7 @@ footer a{
       );
 
 
-    /* Native SegWit */
+    /* Native SegWit P2WPKH */
 
     const addrBech32 =
       segwitAddress(
@@ -1930,28 +1709,23 @@ footer a{
         bytesToHex(privBytes),
 
       wifC,
-
       wifU,
 
       addrP2PKHc,
-
       addrP2PKHu,
-
       addrP2SH,
-
       addrBech32
 
     };
+
   }
 
 
-  /* =======================================================
-     BLOCKSTREAM ADDRESS API
-     ======================================================= */
+  /* =========================================================
+     BLOCKSTREAM API
+  ========================================================== */
 
-  async function checkAddress(
-    address
-  ){
+  async function checkBalance(address){
 
     try{
 
@@ -1966,47 +1740,44 @@ footer a{
         throw new Error(
           'HTTP ' + res.status
         );
+
       }
 
       const data =
         await res.json();
 
 
+      const chain =
+        data.chain_stats || {};
+
+      const mempool =
+        data.mempool_stats || {};
+
+
       const funded =
-        (
-          data.chain_stats?.funded_txo_sum ||
-          0
-        ) +
-        (
-          data.mempool_stats?.funded_txo_sum ||
-          0
-        );
+        (chain.funded_txo_sum || 0) +
+        (mempool.funded_txo_sum || 0);
 
 
       const spent =
-        (
-          data.chain_stats?.spent_txo_sum ||
-          0
-        ) +
-        (
-          data.mempool_stats?.spent_txo_sum ||
-          0
-        );
+        (chain.spent_txo_sum || 0) +
+        (mempool.spent_txo_sum || 0);
 
 
       const sats =
         funded - spent;
 
 
+      /*
+        tx_count > 0 означает, что адрес
+        имеет историю транзакций.
+
+        Учитываем и chain, и mempool.
+      */
+
       const txCount =
-        (
-          data.chain_stats?.tx_count ||
-          0
-        ) +
-        (
-          data.mempool_stats?.tx_count ||
-          0
-        );
+        (chain.tx_count || 0) +
+        (mempool.tx_count || 0);
 
 
       return {
@@ -2017,7 +1788,7 @@ footer a{
 
         txCount,
 
-        used:
+        hasHistory:
           txCount > 0
 
       };
@@ -2025,25 +1796,29 @@ footer a{
     }catch(e){
 
       return {
-
-        ok:false,
-
-        sats:0,
-
-        txCount:0,
-
-        used:false
-
+        ok:false
       };
+
     }
+
   }
 
 
-  /* =======================================================
-     ELEMENTS
-     ======================================================= */
+  /* =========================================================
+     DOM
+  ========================================================== */
 
   const els = {
+
+    privateKeyInput:
+      document.getElementById(
+        'privateKeyInput'
+      ),
+
+    inputHint:
+      document.getElementById(
+        'inputHint'
+      ),
 
     privHex:
       document.getElementById(
@@ -2080,24 +1855,14 @@ footer a{
         'addrBech32'
       ),
 
-    statusNote:
+    balanceStatus:
       document.getElementById(
-        'statusNote'
+        'balanceStatus'
       ),
 
-    balanceSummary:
+    balanceWallets:
       document.getElementById(
-        'balanceSummary'
-      ),
-
-    balanceTotal:
-      document.getElementById(
-        'balanceTotal'
-      ),
-
-    balanceDetails:
-      document.getElementById(
-        'balanceDetails'
+        'balanceWallets'
       )
 
   };
@@ -2129,275 +1894,307 @@ footer a{
   const MAX_LOG = 30;
 
 
-  /* =======================================================
+  /* =========================================================
      UI HELPERS
-     ======================================================= */
+  ========================================================== */
 
   function setValue(
-    el,
-    value
+    element,
+    value,
+    placeholder = false
   ){
 
-    el.value !== undefined
-      ? el.value = value
-      : el.textContent = value;
+    element.textContent =
+      value;
 
-    el.classList.remove(
-      'placeholder'
+    element.classList.toggle(
+      'placeholder',
+      placeholder
     );
+
   }
 
 
-  function formatBTC(
-    sats
-  ){
+  function setInputError(message){
+
+    els.inputHint.textContent =
+      message;
+
+    els.inputHint.classList.add(
+      'input-error'
+    );
+
+  }
+
+
+  function clearInputError(){
+
+    els.inputHint.textContent =
+      'Можно вводить любое HEX-число от 1 до 64 символов. Например: 1, 01, deadbeef.';
+
+    els.inputHint.classList.remove(
+      'input-error'
+    );
+
+  }
+
+
+  function resetBalancePanel(){
+
+    els.balanceStatus.className =
+      'balance-status muted';
+
+    els.balanceStatus.textContent =
+      'Баланс не проверен';
+
+    els.balanceWallets.innerHTML =
+      '';
+
+  }
+
+
+  function showChecking(){
+
+    els.balanceStatus.className =
+      'balance-status checking';
+
+    els.balanceStatus.textContent =
+      'Проверка баланса…';
+
+    els.balanceWallets.innerHTML =
+      '';
+
+  }
+
+
+  function formatBTC(sats){
 
     return (
       sats / 1e8
     ).toFixed(8) +
     ' BTC';
+
   }
 
 
-  function setStatus(
-    message,
-    type = ''
+  function shortAddress(address){
+
+    if(address.length <= 24){
+
+      return address;
+
+    }
+
+    return (
+      address.slice(0,10) +
+      '…' +
+      address.slice(-8)
+    );
+
+  }
+
+
+  /*
+    Цветная точка:
+
+    yellow = были транзакции
+    red    = транзакций никогда не было
+  */
+
+  function createHistoryDot(
+    hasHistory
   ){
 
-    els.statusNote.textContent =
-      message;
+    const dot =
+      document.createElement('span');
 
-    els.statusNote.className =
-      'note ' + type;
+    dot.className =
+      'history-dot ' +
+      (
+        hasHistory
+          ? 'previous'
+          : 'never'
+      );
+
+    dot.title =
+      hasHistory
+        ? 'У адреса есть история транзакций'
+        : 'У адреса нет транзакций';
+
+    return dot;
+
   }
 
 
-  /* =======================================================
-     BALANCE UI
-     ======================================================= */
+  /* =========================================================
+     BALANCE RENDER
+  ========================================================== */
 
-  function setSummaryLoading(){
-
-    els.balanceTotal.className =
-      'balance-total';
-
-    els.balanceTotal.innerHTML = `
-      <span class="balance-loading">
-        Проверка баланса…
-      </span>
-    `;
-
-    els.balanceDetails.innerHTML = '';
-  }
-
-
-  function renderBalanceSummary(
+  function renderBalance(
     results
   ){
 
+    const valid =
+      results.filter(
+        r => r.ok
+      );
+
+
+    /*
+      Если хотя бы один запрос не прошёл,
+      показываем н/д.
+    */
+
+    if(valid.length !== results.length){
+
+      els.balanceStatus.className =
+        'balance-status muted';
+
+      els.balanceStatus.textContent =
+        'Баланс не проверен: API недоступен';
+
+      els.balanceWallets.innerHTML =
+        '';
+
+      return;
+
+    }
+
+
     const totalSats =
-      results.reduce(
+      valid.reduce(
         (sum,r) =>
-          sum +
-          (
-            r.ok
-              ? r.sats
-              : 0
-          ),
+          sum + r.sats,
         0
       );
 
 
-    const anyError =
-      results.some(
-        r => !r.ok
-      );
+    /*
+      ВАЖНО:
+
+      Если баланс нулевой —
+      показываем ТОЛЬКО общий баланс.
+
+      Никаких четырёх адресов.
+    */
+
+    if(totalSats <= 0){
+
+      els.balanceStatus.className =
+        'balance-status balance-total empty';
+
+      els.balanceStatus.textContent =
+        'Общий баланс: 0 BTC';
+
+      els.balanceWallets.innerHTML =
+        '';
+
+      return;
+
+    }
 
 
-    const active =
+    /*
+      Если есть баланс —
+      общий баланс + только кошельки,
+      на которых есть деньги.
+    */
+
+    els.balanceStatus.className =
+      'balance-status balance-total has-balance';
+
+    els.balanceStatus.textContent =
+      'Общий баланс: ' +
+      formatBTC(totalSats);
+
+
+    els.balanceWallets.innerHTML =
+      '';
+
+
+    const funded =
       results.filter(
-        r =>
-          r.ok &&
-          r.sats > 0
+        r => r.sats > 0
       );
 
 
-    /* Общий баланс */
+    for(const item of funded){
 
-    if(totalSats > 0){
+      const row =
+        document.createElement('div');
 
-      els.balanceTotal.className =
-        'balance-total positive';
+      row.className =
+        'balance-wallet';
 
-      els.balanceTotal.innerHTML = `
 
-        <span class="status-dot yellow"></span>
-
-        <span>
-          Общий баланс:
-          ${formatBTC(totalSats)}
-        </span>
-
-      `;
-
-    }else{
-
-      els.balanceTotal.className =
-        'balance-total empty';
-
-      els.balanceTotal.innerHTML = `
-
-        <span class="status-dot red"></span>
-
-        <span>
-          Общий баланс: 0 BTC
-        </span>
-
-      `;
-    }
-
-
-    /* Детализация */
-
-    const rows = [];
-
-
-    for(
-      const r of results
-    ){
-
-      /* API недоступен */
-
-      if(!r.ok){
-
-        rows.push(`
-
-          <div class="balance-row">
-
-            <span class="status-dot red"></span>
-
-            <span class="balance-format">
-              ${r.label}
-            </span>
-
-            <span class="balance-value error">
-              н/д
-            </span>
-
-          </div>
-
-        `);
-
-        continue;
-      }
-
-
-      /* Есть баланс */
-
-      if(r.sats > 0){
-
-        rows.push(`
-
-          <div class="balance-row">
-
-            <span class="status-dot yellow"></span>
-
-            <span class="balance-format">
-              ${r.label}
-            </span>
-
-            <span class="balance-value positive">
-              ${formatBTC(r.sats)}
-            </span>
-
-          </div>
-
-        `);
-
-        continue;
-      }
-
-
-      /*
-       * Адрес пустой, но использовался:
-       * жёлтая точка.
-       */
-
-      if(r.used){
-
-        rows.push(`
-
-          <div class="balance-row muted-row">
-
-            <span class="status-dot yellow"></span>
-
-            <span class="balance-format">
-              ${r.label}
-            </span>
-
-            <span class="balance-value empty-value">
-              0 BTC
-            </span>
-
-          </div>
-
-        `);
-
-        continue;
-      }
-
-
-      /*
-       * Если общий баланс равен нулю,
-       * показываем также никогда
-       * не использовавшиеся адреса.
-       */
-
-      if(active.length === 0){
-
-        rows.push(`
-
-          <div class="balance-row muted-row">
-
-            <span class="status-dot red"></span>
-
-            <span class="balance-format">
-              ${r.label}
-            </span>
-
-            <span class="balance-value empty-value">
-              0 BTC
-            </span>
-
-          </div>
-
-        `);
-      }
-    }
-
-
-    els.balanceDetails.innerHTML =
-      rows.join('');
-
-
-    if(anyError){
-
-      setStatus(
-        'Часть адресов не удалось проверить через публичный API Blockstream.'
+      row.appendChild(
+        createHistoryDot(
+          item.hasHistory
+        )
       );
 
-    }else{
 
-      setStatus(
-        'Проверка завершена. Приватный ключ обрабатывается локально.'
+      const format =
+        document.createElement('span');
+
+      format.className =
+        'format';
+
+      format.textContent =
+        item.label;
+
+      row.appendChild(
+        format
       );
+
+
+      const amount =
+        document.createElement('span');
+
+      amount.className =
+        'amount';
+
+      amount.textContent =
+        formatBTC(
+          item.sats
+        );
+
+      row.appendChild(
+        amount
+      );
+
+
+      const address =
+        document.createElement('span');
+
+      address.className =
+        'address-short';
+
+      address.textContent =
+        shortAddress(
+          item.address
+        );
+
+      address.title =
+        item.address;
+
+      row.appendChild(
+        address
+      );
+
+
+      els.balanceWallets.appendChild(
+        row
+      );
+
     }
+
   }
 
 
-  /* =======================================================
+  /* =========================================================
      SCRAMBLE
-     ======================================================= */
+  ========================================================== */
 
   function scramble(
     el,
@@ -2438,13 +2235,14 @@ footer a{
                 s +=
                   chars[
                     Math.floor(
-                      Math.random() * 16
+                      Math.random() *
+                      16
                     )
                   ];
+
               }
 
-
-              el.value =
+              el.textContent =
                 s +
                 (
                   finalText.length > len
@@ -2452,15 +2250,12 @@ footer a{
                     : ''
                 );
 
-
               el.classList.add(
                 'scramble'
               );
 
 
-              if(
-                elapsed >= duration
-              ){
+              if(elapsed >= duration){
 
                 clearInterval(iv);
 
@@ -2468,31 +2263,30 @@ footer a{
                   'scramble'
                 );
 
-                el.value =
+                el.textContent =
                   finalText;
 
                 resolve();
+
               }
 
             },
             step
           );
+
       }
     );
+
   }
 
 
-  /* =======================================================
+  /* =========================================================
      LOG
-     ======================================================= */
+  ========================================================== */
 
-  function addLogEntry(
-    data
-  ){
+  function addLogEntry(data){
 
-    logEntries.unshift(
-      data
-    );
+    logEntries.unshift(data);
 
     if(
       logEntries.length >
@@ -2500,15 +2294,15 @@ footer a{
     ){
 
       logEntries.pop();
+
     }
 
     renderLog();
+
   }
 
 
-  function totalBadgeHtml(
-    entry
-  ){
+  function totalBadgeHtml(entry){
 
     if(
       entry.totalStatus ===
@@ -2520,6 +2314,7 @@ footer a{
           проверка…
         </span>
       `;
+
     }
 
 
@@ -2533,6 +2328,7 @@ footer a{
           н/д
         </span>
       `;
+
     }
 
 
@@ -2543,17 +2339,21 @@ footer a{
 
       return `
         <span class="badge funded">
-          ${formatBTC(entry.totalSats)}
+          ${(
+            entry.totalSats / 1e8
+          ).toFixed(8)} BTC
         </span>
       `;
+
     }
 
 
     return `
       <span class="badge empty">
-        0 BTC
+        0 BTC · пусто
       </span>
     `;
+
   }
 
 
@@ -2572,12 +2372,14 @@ footer a{
       logEntries.length === 0
     ){
 
-      logEl.innerHTML =
-        '<div class="log-empty">' +
-        'Пока пусто. Стог ждёт первую иголку.' +
-        '</div>';
+      logEl.innerHTML = `
+        <div class="log-empty">
+          Пока пусто. Стог ждёт первую иголку.
+        </div>
+      `;
 
       return;
+
     }
 
 
@@ -2619,36 +2421,37 @@ footer a{
           `
         )
         .join('');
+
   }
 
 
-  /* =======================================================
-     BALANCE CHECKS
-     ======================================================= */
+  /* =========================================================
+     BALANCE CHECK
+  ========================================================== */
 
   async function runBalanceChecks(
     data,
     logId
   ){
 
-    setSummaryLoading();
+    showChecking();
 
 
-    const addresses = [
+    const wallets = [
 
       {
         key:'addrP2PKHc',
-        label:'P2PKH · C'
+        label:'P2PKH·C'
       },
 
       {
         key:'addrP2PKHu',
-        label:'P2PKH · U'
+        label:'P2PKH·U'
       },
 
       {
         key:'addrP2SH',
-        label:'P2SH-P2WPKH'
+        label:'P2SH'
       },
 
       {
@@ -2661,38 +2464,62 @@ footer a{
 
     const results =
       await Promise.all(
+        wallets.map(
+          async wallet => {
 
-        addresses.map(
-          async item => {
+            const address =
+              data[
+                wallet.key
+              ];
 
             const result =
-              await checkAddress(
-                data[item.key]
+              await checkBalance(
+                address
               );
+
 
             return {
 
-              ...item,
+              key:
+                wallet.key,
 
-              address:
-                data[item.key],
+              label:
+                wallet.label,
 
-              ...result
+              address,
+
+              ok:
+                result.ok,
+
+              sats:
+                result.sats || 0,
+
+              txCount:
+                result.txCount || 0,
+
+              hasHistory:
+                !!result.hasHistory
 
             };
+
           }
         )
       );
 
 
-    renderBalanceSummary(
+    renderBalance(
       results
     );
 
 
+    /*
+      Обновляем журнал.
+    */
+
     const entry =
       logEntries.find(
-        e => e.id === logId
+        e =>
+          e.id === logId
       );
 
 
@@ -2706,96 +2533,125 @@ footer a{
 
         const totalSats =
           results.reduce(
-            (s,r) =>
-              s + r.sats,
+            (sum,r) =>
+              sum + r.sats,
             0
           );
+
+
+        entry.totalSats =
+          totalSats;
 
         entry.totalStatus =
           totalSats > 0
             ? 'funded'
             : 'empty';
 
-        entry.totalSats =
-          totalSats;
-
       }else{
 
         entry.totalStatus =
           'na';
+
       }
 
+
       renderLog();
+
     }
+
   }
 
 
-  /* =======================================================
-     DISPLAY DERIVED DATA
-     ======================================================= */
+  /* =========================================================
+     SHOW DERIVED DATA
+  ========================================================== */
 
-  async function displayData(
-    data,
-    animate = true
+  function showDerivedData(
+    data
   ){
 
-    if(animate){
-
-      await scramble(
-        els.privHex,
-        data.privHex,
-        360
-      );
-
-    }else{
-
-      setValue(
-        els.privHex,
-        data.privHex
-      );
-    }
-
+    setValue(
+      els.privHex,
+      data.privHex
+    );
 
     setValue(
       els.wifC,
       data.wifC
     );
 
-
     setValue(
       els.wifU,
       data.wifU
     );
-
 
     setValue(
       els.addrP2PKHc,
       data.addrP2PKHc
     );
 
-
     setValue(
       els.addrP2PKHu,
       data.addrP2PKHu
     );
-
 
     setValue(
       els.addrP2SH,
       data.addrP2SH
     );
 
-
     setValue(
       els.addrBech32,
       data.addrBech32
     );
+
   }
 
 
-  /* =======================================================
-     GENERATE NEW KEY
-     ======================================================= */
+  /* =========================================================
+     LOG ENTRY
+  ========================================================== */
+
+  function createLogEntry(
+    data
+  ){
+
+    const now =
+      new Date();
+
+    return {
+
+      id:
+        now.getTime() +
+        Math.random(),
+
+      privHex:
+        data.privHex,
+
+      totalStatus:
+        'checking',
+
+      totalSats:
+        0,
+
+      time:
+        now.toLocaleTimeString(
+          'ru-RU',
+          {
+            hour:'2-digit',
+            minute:'2-digit',
+            second:'2-digit'
+          }
+        )
+
+    };
+
+  }
+
+
+  /* =========================================================
+     GENERATE RANDOM KEY
+  ========================================================== */
 
   async function generate(){
 
@@ -2811,100 +2667,20 @@ footer a{
       const priv =
         randomPrivateKey();
 
-
-      const data =
-        deriveAll(priv);
-
-
-      await displayData(
-        data,
-        true
-      );
-
-
-      const now =
-        new Date();
-
-
-      const logId =
-        now.getTime() +
-        Math.random();
-
-
-      addLogEntry({
-
-        ...data,
-
-        id:logId,
-
-        totalStatus:
-          'checking',
-
-        totalSats:0,
-
-        time:
-          now.toLocaleTimeString(
-            'ru-RU',
-            {
-              hour:'2-digit',
-              minute:'2-digit',
-              second:'2-digit'
-            }
-          )
-
-      });
-
-
-      runBalanceChecks(
-        data,
-        logId
-      );
-
-
-    }finally{
-
-      genBtn.disabled = false;
-
-      checkBtn.disabled = false;
-
-      genBtn.textContent =
-        '⚡ Сгенерировать ключ';
-    }
-  }
-
-
-  /* =======================================================
-     CHECK MANUALLY ENTERED KEY
-     ======================================================= */
-
-  async function checkManualKey(){
-
-    checkBtn.disabled = true;
-
-    try{
-
-      const input =
-        els.privHex.value;
-
-
-      const priv =
-        validatePrivateKeyHex(
-          input
-        );
-
-
       const data =
         deriveAll(priv);
 
 
       /*
-       * Нормализуем HEX:
-       * всегда 64 символа,
-       * нижний регистр.
-       */
+        При генерации сохраняем scramble,
+        как было в оригинальной версии.
+      */
 
-      els.privHex.value =
-        data.privHex;
+      await scramble(
+        els.privHex,
+        data.privHex,
+        360
+      );
 
 
       setValue(
@@ -2912,30 +2688,25 @@ footer a{
         data.wifC
       );
 
-
       setValue(
         els.wifU,
         data.wifU
       );
-
 
       setValue(
         els.addrP2PKHc,
         data.addrP2PKHc
       );
 
-
       setValue(
         els.addrP2PKHu,
         data.addrP2PKHu
       );
 
-
       setValue(
         els.addrP2SH,
         data.addrP2SH
       );
-
 
       setValue(
         els.addrBech32,
@@ -2943,70 +2714,245 @@ footer a{
       );
 
 
-      const now =
-        new Date();
+      /*
+        Показываем нормализованный ключ
+        также в поле ввода.
+      */
+
+      els.privateKeyInput.value =
+        data.privHex;
 
 
-      const logId =
-        now.getTime() +
-        Math.random();
+      clearInputError();
 
 
-      addLogEntry({
+      const entry =
+        createLogEntry(
+          data
+        );
 
-        ...data,
-
-        id:logId,
-
-        totalStatus:
-          'checking',
-
-        totalSats:0,
-
-        time:
-          now.toLocaleTimeString(
-            'ru-RU',
-            {
-              hour:'2-digit',
-              minute:'2-digit',
-              second:'2-digit'
-            }
-          )
-
-      });
-
-
-      setStatus(
-        'Ключ принят. Проверяются производные публичные адреса.'
+      addLogEntry(
+        entry
       );
+
+
+      resetBalancePanel();
+
+
+      /*
+        Кнопка снова доступна сразу.
+        Проверка выполняется отдельно.
+      */
+
+      genBtn.disabled = false;
+      checkBtn.disabled = false;
+
+      genBtn.textContent =
+        '⚡ Сгенерировать ключ';
 
 
       runBalanceChecks(
         data,
-        logId
+        entry.id
       );
 
 
-    }catch(e){
+    }catch(error){
 
-      setStatus(
-        e.message ||
-        'Некорректный приватный ключ.',
-        'error'
+      genBtn.disabled = false;
+      checkBtn.disabled = false;
+
+      genBtn.textContent =
+        '⚡ Сгенерировать ключ';
+
+      setInputError(
+        error.message
       );
 
-      els.privHex.focus();
+    }
+
+  }
+
+
+  /* =========================================================
+     CHECK MANUAL KEY
+  ========================================================== */
+
+  async function checkManualKey(){
+
+    /*
+      Никакой scramble-анимации.
+      Никакого удаления блока.
+      Никаких временных placeholder'ов.
+    */
+
+    let privBytes;
+
+
+    try{
+
+      privBytes =
+        normalizePrivateKey(
+          els.privateKeyInput.value
+        );
+
+      clearInputError();
+
+
+    }catch(error){
+
+      setInputError(
+        error.message
+      );
+
+      return;
+
+    }
+
+
+    checkBtn.disabled = true;
+
+    checkBtn.textContent =
+      'проверка…';
+
+
+    try{
+
+      const data =
+        deriveAll(
+          privBytes
+        );
+
+
+      /*
+        Нормализованный 64-символьный
+        вариант показываем в результатах.
+      */
+
+      showDerivedData(
+        data
+      );
+
+
+      /*
+        В поле ввода тоже показываем
+        нормализованный 64-символьный ключ.
+      */
+
+      els.privateKeyInput.value =
+        data.privHex;
+
+
+      const entry =
+        createLogEntry(
+          data
+        );
+
+
+      addLogEntry(
+        entry
+      );
+
+
+      /*
+        Баланс-панель уже существует
+        и имеет фиксированную высоту.
+
+        Поэтому никакого скачка layout.
+      */
+
+      showChecking();
+
+
+      await runBalanceChecks(
+        data,
+        entry.id
+      );
+
+
+    }catch(error){
+
+      setInputError(
+        error.message
+      );
 
     }finally{
 
       checkBtn.disabled = false;
+
+      checkBtn.textContent =
+        'Проверить ключ';
+
     }
+
   }
 
 
-  /* =======================================================
-     EVENTS
-     ======================================================= */
+  /* =========================================================
+     INPUT FILTER
+  ========================================================== */
+
+  els.privateKeyInput.addEventListener(
+    'input',
+    function(){
+
+      /*
+        Разрешаем только HEX.
+        Не заставляем пользователя
+        вводить 64 символа.
+      */
+
+      const oldValue =
+        this.value;
+
+      const clean =
+        oldValue
+          .replace(/^0x/i,'')
+          .replace(/[^0-9a-fA-F]/g,'')
+          .slice(0,64);
+
+
+      if(
+        clean !== oldValue
+      ){
+
+        this.value =
+          clean;
+
+      }
+
+
+      clearInputError();
+
+    }
+  );
+
+
+  /*
+    Enter в поле = Проверить ключ.
+  */
+
+  els.privateKeyInput.addEventListener(
+    'keydown',
+    function(event){
+
+      if(
+        event.key === 'Enter'
+      ){
+
+        event.preventDefault();
+
+        checkManualKey();
+
+      }
+
+    }
+  );
+
+
+  /* =========================================================
+     BUTTONS
+  ========================================================== */
 
   genBtn.addEventListener(
     'click',
@@ -3020,96 +2966,82 @@ footer a{
   );
 
 
-  /*
-   * Ctrl + Enter
-   * также запускает проверку.
-   */
-
-  els.privHex.addEventListener(
-    'keydown',
-    e => {
-
-      if(
-        e.ctrlKey &&
-        e.key === 'Enter'
-      ){
-
-        e.preventDefault();
-
-        checkManualKey();
-      }
-    }
-  );
-
-
-  /* =======================================================
-     COPY BUTTONS
-     ======================================================= */
+  /* =========================================================
+     COPY
+  ========================================================== */
 
   document
     .querySelectorAll('.copy')
-    .forEach(btn => {
+    .forEach(
+      btn => {
 
-      btn.addEventListener(
-        'click',
-        () => {
+        btn.addEventListener(
+          'click',
+          () => {
 
-          const target =
-            document.getElementById(
-              btn.dataset.copy
-            );
-
-
-          const text =
-            target.value !== undefined
-              ? target.value
-              : target.textContent;
+            const target =
+              document.getElementById(
+                btn.dataset.copy
+              );
 
 
-          if(
-            !text ||
-            target.classList.contains(
-              'placeholder'
-            )
-          ){
+            const text =
+              target.textContent;
 
-            return;
+
+            if(
+              !text ||
+              target.classList.contains(
+                'placeholder'
+              )
+            ){
+
+              return;
+
+            }
+
+
+            navigator
+              .clipboard
+              ?.writeText(text)
+              .then(
+                () => {
+
+                  const old =
+                    btn.textContent;
+
+                  btn.textContent =
+                    'скопировано';
+
+
+                  setTimeout(
+                    () => {
+
+                      btn.textContent =
+                        old;
+
+                    },
+                    1200
+                  );
+
+                }
+              )
+              .catch(
+                () => {}
+              );
+
           }
+        );
+
+      }
+    );
 
 
-          navigator
-            .clipboard
-            ?.writeText(text)
-            .then(
-              () => {
+  /* =========================================================
+     INITIAL STATE
+  ========================================================== */
 
-                const old =
-                  btn.textContent;
-
-                btn.textContent =
-                  'скопировано';
-
-
-                setTimeout(
-                  () => {
-
-                    btn.textContent =
-                      old;
-
-                  },
-                  1200
-                );
-
-              }
-            )
-            .catch(
-              () => {}
-            );
-        }
-      );
-
-    });
-
+  resetBalancePanel();
 
 })();
 </script>
