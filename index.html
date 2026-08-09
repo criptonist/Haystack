@@ -22,6 +22,7 @@
     --dimmer:#3f5148;
     --accent:#f7931a;
     --accent-dim:#7a4c0f;
+    --accent-light:#ffb85c;
     --ok:#4fd67a;
     --danger:#ff5c5c;
     --warning:#f5c542;
@@ -124,6 +125,12 @@
     font-size:20px;
     font-weight:700;
     color:var(--text);
+  }
+
+  .stat .k sup{
+    font-size:0.6em;
+    font-weight:700;
+    line-height:0;
   }
 
   .stat .v{
@@ -292,23 +299,25 @@
     cursor:pointer;
     width:100%;
 
-    background:var(--accent);
-    color:#1a0f00;
+    padding:0;
+    background:transparent;
+    border-radius:11px;
+    overflow:hidden;
 
-    font-family:var(--mono);
-    font-weight:800;
-    font-size:15px;
-    letter-spacing:.05em;
-
-    padding:16px 26px;
-    border-radius:9px;
+    line-height:0;
 
     box-shadow:0 0 0 0 rgba(247,147,26,.5);
 
     transition:
       transform .12s ease,
-      box-shadow .25s ease,
-      background .2s ease;
+      box-shadow .25s ease;
+  }
+
+  button.gen img{
+    display:block;
+    width:100%;
+    height:auto;
+    pointer-events:none;
   }
 
   button.gen:hover{
@@ -533,6 +542,11 @@
     color:var(--dimmer);
   }
 
+  .addr-line strong.hl{
+    font-weight:800;
+    color:var(--accent-light);
+  }
+
   .addr-meta{
     display:flex;
     align-items:center;
@@ -545,10 +559,10 @@
     font-weight:800;
     letter-spacing:.05em;
 
-    color:var(--accent);
+    color:#6e6e6e;
 
-    background:rgba(247,147,26,.08);
-    border:1px solid var(--accent-dim);
+    background:rgba(255,255,255,.04);
+    border:1px solid var(--border);
 
     border-radius:5px;
     padding:3px 6px;
@@ -627,7 +641,7 @@
   <div class="stats">
 
     <div class="stat">
-      <div class="k">2²⁵⁶ ≈ 1.16 × 10⁷⁷</div>
+      <div class="k">2<sup>256</sup> ≈ 1.16 × 10⁷⁷</div>
       <div class="v">возможных приватных ключей</div>
     </div>
 
@@ -725,8 +739,9 @@
       <button
         class="gen"
         id="genBtn"
+        aria-label="Сгенерировать ключ"
       >
-        ⚡ Сгенерировать ключ
+        <img src="luckyday.png" alt="Сгенерировать ключ">
       </button>
 
     </div>
@@ -1742,6 +1757,52 @@
   }
 
 
+  /*
+    Для адресов кошельков: первые и последние
+    7 символов выводятся жирным (<strong>),
+    середина — обычным начертанием.
+  */
+
+  function setAddressValue(
+    element,
+    address,
+    bold = true
+  ){
+
+    element.classList.remove(
+      'placeholder'
+    );
+
+    if(
+      !address ||
+      !bold ||
+      address.length <= 14
+    ){
+
+      element.textContent =
+        address || '';
+
+      return;
+
+    }
+
+    const start =
+      address.slice(0,7);
+
+    const end =
+      address.slice(-7);
+
+    const middle =
+      address.slice(7, address.length - 7);
+
+    element.innerHTML =
+      '<strong class="hl">' + start + '</strong>' +
+      middle +
+      '<strong class="hl">' + end + '</strong>';
+
+  }
+
+
   function setInputError(message){
 
     els.inputHint.textContent =
@@ -2269,24 +2330,25 @@
       data.wifU
     );
 
-    setValue(
+    setAddressValue(
       els.addrP2PKHc,
       data.addrP2PKHc
     );
 
-    setValue(
+    setAddressValue(
       els.addrP2PKHu,
       data.addrP2PKHu
     );
 
-    setValue(
+    setAddressValue(
       els.addrP2SH,
       data.addrP2SH
     );
 
-    setValue(
+    setAddressValue(
       els.addrBech32,
-      data.addrBech32
+      data.addrBech32,
+      false
     );
 
   }
@@ -2300,9 +2362,6 @@
 
     genBtn.disabled = true;
     checkBtn.disabled = true;
-
-    genBtn.textContent =
-      'генерация…';
 
 
     try{
@@ -2331,24 +2390,25 @@
         data.wifU
       );
 
-      setValue(
+      setAddressValue(
         els.addrP2PKHc,
         data.addrP2PKHc
       );
 
-      setValue(
+      setAddressValue(
         els.addrP2PKHu,
         data.addrP2PKHu
       );
 
-      setValue(
+      setAddressValue(
         els.addrP2SH,
         data.addrP2SH
       );
 
-      setValue(
+      setAddressValue(
         els.addrBech32,
-        data.addrBech32
+        data.addrBech32,
+        false
       );
 
 
@@ -2375,9 +2435,6 @@
       genBtn.disabled = false;
       checkBtn.disabled = false;
 
-      genBtn.textContent =
-        '⚡ Сгенерировать ключ';
-
 
       runBalanceChecks(
         data
@@ -2388,9 +2445,6 @@
 
       genBtn.disabled = false;
       checkBtn.disabled = false;
-
-      genBtn.textContent =
-        '⚡ Сгенерировать ключ';
 
       setInputError(
         error.message
