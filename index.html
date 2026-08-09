@@ -1540,87 +1540,111 @@
 
 
   /* =========================================================
-     BLOCKSTREAM API
+     BALANCE API FALLBACKS
+
+     Порядок: Blockstream -> BlockCypher -> Mempool.space.
+     Если провайдер вернул ошибку/429/таймаут, используется следующий.
+     Приватный ключ никуда не отправляется: API получают только адрес.
   ========================================================== */
 
-  async function checkBalance(address){
+  const API_TIMEOUT_MS = 8000;
+
+  // Для обычных GET-запросов BlockCypher token не обязателен.
+  // Если у вас есть собственный token, его можно указать здесь.
+  const BLOCKCYPHER_TOKEN = '';
+
+  const BALANCE_PROVIDERS = [
+    { name:'Blockstream', url: address =>
+        'https://blockstream.info/api/address/' + encodeURIComponent(address) },
+    { name:'BlockCypher', url: address =>
+        'https://api.blockcypher.com/v1/btc/main/addrs/' +
+        encodeURIComponent(address) + '/balance' +
+        (BLOCKCYPHER_TOKEN ? '?token=' + encodeURIComponent(BLOCKCYPHER_TOKEN) : '') },
+    { name:'Mempool.space', url: address =>
+        'https://mempool.space/api/address/' + encodeURIComponent(address) }
+  ];
+
+  async function fetchJsonWithTimeout(url){
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
     try{
+      const res = await fetch(url, {
+        signal: controller.signal,
+        cache: 'no-store'
+      });
 
-      const res =
-        await fetch(
-          'https://blockstream.info/api/address/' +
-          encodeURIComponent(address)
-        );
+      let data = null;
+      try{ data = await res.json(); }catch(_){}
 
       if(!res.ok){
-
-        throw new Error(
-          'HTTP ' + res.status
-        );
-
+        const error = new Error('HTTP ' + res.status);
+        error.status = res.status;
+        throw error;
       }
 
-      const data =
-        await res.json();
-
-
-      const chain =
-        data.chain_stats || {};
-
-      const mempool =
-        data.mempool_stats || {};
-
-
-      const funded =
-        (chain.funded_txo_sum || 0) +
-        (mempool.funded_txo_sum || 0);
-
-
-      const spent =
-        (chain.spent_txo_sum || 0) +
-        (mempool.spent_txo_sum || 0);
-
-
-      const sats =
-        funded - spent;
-
-
-      /*
-        tx_count > 0 означает наличие
-        истории транзакций.
-
-        Учитываем chain и mempool.
-      */
-
-      const txCount =
-        (chain.tx_count || 0) +
-        (mempool.tx_count || 0);
-
-
-      return {
-
-        ok:true,
-
-        sats,
-
-        txCount,
-
-        hasHistory:
-          txCount > 0
-
-      };
-
-    }catch(e){
-
-      return {
-        ok:false
-      };
-
+      return data;
+    }finally{
+      clearTimeout(timer);
     }
-
   }
 
+  function parseProviderBalance(providerName, data){
+    if(providerName === 'BlockCypher'){
+      return {
+        sats: Number(data.final_balance ?? data.balance ?? 0),
+        txCount: Number(data.final_n_tx ?? data.n_tx ?? 0)
+      };
+    }
+
+    // Blockstream и Mempool.space используют chain_stats/mempool_stats.
+    const chain = data.chain_stats || {};
+    const mempool = data.mempool_stats || {};
+
+    const funded =
+      Number(chain.funded_txo_sum || 0) +
+      Number(mempool.funded_txo_sum || 0);
+
+    const spent =
+      Number(chain.spent_txo_sum || 0) +
+      Number(mempool.spent_txo_sum || 0);
+
+    return {
+      sats: funded - spent,
+      txCount:
+        Number(chain.tx_count || 0) +
+        Number(mempool.tx_count || 0)
+    };
+  }
+
+  async function checkBalance(address){
+    let sawRateLimit = false;
+
+    for(const provider of BALANCE_PROVIDERS){
+      try{
+        const data = await fetchJsonWithTimeout(provider.url(address));
+        const parsed = parseProviderBalance(provider.name, data);
+
+        return {
+          ok:true,
+          sats:parsed.sats,
+          txCount:parsed.txCount,
+          hasHistory:parsed.txCount > 0,
+          provider:provider.name,
+          rateLimited:false
+        };
+      }catch(e){
+        if(e && e.status === 429){
+          sawRateLimit = true;
+        }
+      }
+    }
+
+    return {
+      ok:false,
+      rateLimited:sawRateLimit
+    };
+  }
 
   /* =========================================================
      DOM
@@ -1844,11 +1868,16 @@
 
     if(!allValid){
 
+      const allRateLimited =
+        results.every(r => r.rateLimited);
+
       els.balanceStatus.className =
         'balance-status muted';
 
       els.balanceStatus.innerHTML =
-        'Баланс: н/д';
+        allRateLimited
+          ? 'Лимит запросов исчерпан'
+          : 'Баланс: н/д';
 
       els.balanceWallets.innerHTML =
         '';
@@ -2187,6 +2216,12 @@
 
               ok:
                 result.ok,
+
+              provider:
+                result.provider || '',
+
+              rateLimited:
+                !!result.rateLimited,
 
               sats:
                 result.sats || 0,
