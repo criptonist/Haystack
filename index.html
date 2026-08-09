@@ -157,7 +157,26 @@
   }
 
   .forge-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
     margin-bottom:22px;
+  }
+
+  .gen-prefixes{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+    flex-shrink:0;
+    margin-left:15px;
+  }
+
+  .gen-prefixes .px{
+    font-size:16px;
+    font-weight:400;
+    letter-spacing:.04em;
+    color:#c7c7c7;
   }
 
   /* ---------- balance panel ---------- */
@@ -297,7 +316,9 @@
     appearance:none;
     border:none;
     cursor:pointer;
-    width:100%;
+    width:44%;
+    max-width:210px;
+    flex-shrink:0;
 
     padding:0;
     background:none;
@@ -314,7 +335,7 @@
 
   button.gen img{
     display:block;
-    width:50%;
+    width:100%;
     height:auto;
     pointer-events:none;
   }
@@ -733,6 +754,12 @@
     ========================== -->
 
     <div class="forge-top">
+
+      <div class="gen-prefixes" aria-hidden="true">
+        <span class="px" id="genPxP2PKHc">1…</span>
+        <span class="px" id="genPxP2PKHu">1…</span>
+        <span class="px" id="genPxP2SH">3…</span>
+      </div>
 
       <button
         class="gen"
@@ -1718,6 +1745,21 @@
     balanceWallets:
       document.getElementById(
         'balanceWallets'
+      ),
+
+    pxP2PKHc:
+      document.getElementById(
+        'genPxP2PKHc'
+      ),
+
+    pxP2PKHu:
+      document.getElementById(
+        'genPxP2PKHu'
+      ),
+
+    pxP2SH:
+      document.getElementById(
+        'genPxP2SH'
       )
 
   };
@@ -1797,6 +1839,50 @@
       '<strong class="hl">' + start + '</strong>' +
       middle +
       '<strong class="hl">' + end + '</strong>';
+
+  }
+
+
+  /*
+    Первые символы (та же жирная часть, что и в
+    адресе) для трёх кошельков — выводятся рядом
+    с кнопкой генерации.
+  */
+
+  function setPrefix(element, address){
+
+    if(!address){
+
+      element.textContent = '—';
+
+      return;
+
+    }
+
+    element.textContent =
+      address.length > 7
+        ? address.slice(0,7) + '…'
+        : address;
+
+  }
+
+
+  function updateGenPrefixes(data){
+
+    setPrefix(
+      els.pxP2PKHc,
+      data.addrP2PKHc
+    );
+
+    setPrefix(
+      els.pxP2PKHu,
+      data.addrP2PKHu
+    );
+
+    setPrefix(
+      els.pxP2SH,
+      data.addrP2SH
+    );
 
   }
 
@@ -2349,6 +2435,10 @@
       false
     );
 
+    updateGenPrefixes(
+      data
+    );
+
   }
 
 
@@ -2407,6 +2497,10 @@
         els.addrBech32,
         data.addrBech32,
         false
+      );
+
+      updateGenPrefixes(
+        data
       );
 
 
